@@ -1,0 +1,44 @@
+---
+title: "Untitled"
+author: "Connolly, Gatica, and Reeves"
+date: "5/13/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### The Premise
+
+We want to predict the performance of Ethereum against USD using historical data.  Generally, this practice is frowned upon because each new trading day changes the business cycles that produce following rates.  However, for the sake of this assignment, instead of using regressors, we are going to try to create a model based on categorization and feature engineering.
+
+Our data is a bit rough, with only daily readings of Open, High, Low, Close, Volume, (OHLC) and Block Size.  Finer-grain data is a bit expensive.
+
+Instead of predicting an exact exchange rate, we will simply try to determine if the following week from any data point is bullish (significantly increasing), bearish (significantly decreasing) or neutral (transaction costs would prohibit profit from buying or selling).
+
+### Feature engineering
+
+We will be using volume to establish a feature called Momentum, which is the rate of change of the volume of trades.  This will tell us if there is significant investor emotion regarding this asset.
+
+The next feature will be MACD (Moving Average Convergence/Divergence), which should give an idea of whether the bid and ask prices are converging or diverging.  If momentum is dignificant, this feature will tell us what direction the price is moving.
+
+Next, we will include a Stochastic indicator, which gives the relationship between the asset's closing price and the price range over the previous period.
+
+Finally, we must look into the future to score the Outlook for each observation as bullish, bearish, or neutral.
+
+### The Model
+
+We will split the data at 2/3 and train a model (probably random forest) with independent variables Momentum, MACD, Stochastic, and dependent being the Outlook.
+
+### Scoring the Model
+
+Precision? Recall? F-measure?
+
+### Visualizations
+
+Confusion matrix? Line plots? Box plots?
+
+### Conclusions
+
+This either worked or it didn't.
