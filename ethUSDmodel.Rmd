@@ -15,7 +15,7 @@ We want to predict the performance of Ethereum against USD using historical data
 
 Our data is a bit rough, with only daily readings of Open, High, Low, Close, Volume, (OHLC) and Block Size.  Finer-grain data is a bit expensive.
 
-Instead of predicting an exact exchange rate, we will simply try to determine if the following week from any data point is bullish (significantly increasing), bearish (significantly decreasing) or neutral (transaction costs would prohibit profit from buying or selling).
+Instead of predicting an exact exchange rate, we will simply try to determine if the following week from any data point is bullish (significantly increasing) or bearish (significantly decreasing).
 
 ```{r, message=FALSE}
 library(tidyverse)
@@ -30,11 +30,44 @@ data <- "https://tinyurl.com/ber2wuxv" %>%
 
 We will be using volume to establish a feature called Momentum, which is the rate of change of the volume of trades.  This will tell us if there is significant investor emotion regarding this asset.
 
-The next feature will be MACD (Moving Average Convergence/Divergence), which should give an idea of whether the bid and ask prices are converging or diverging.  If momentum is dignificant, this feature will tell us what direction the price is moving.
+```{r}
+# period <- 9
+# momentum <- 100 * (data$Close[current] /
+#                    data$Close[current-period])
+```
 
-Next, we will include a Stochastic indicator, which gives the relationship between the asset's closing price and the price range over the previous period.
+The next feature will be MACD (Moving Average Convergence/Divergence), which shows differences between exponential moving averages of two different periods.  If momentum is significant, this feature will tell us what direction the price is moving.
+
+```{r}
+# simple moving average
+# sma12 <- mean(data$Close[today-12:today])
+# sma26 <- mean(data$Close[today-26:today])
+
+# exponential moving average
+# ema12 <- (data$Close[today] - ema12[today-1]) *
+#          (2 / 13) + ema12[today-1]
+# ema26 <- (data$Close[today] - ema12[today-1]) *
+#          (2 / 27) + ema12[today-1]
+
+# macd <- ema12 - ema26
+```
+
+Next, we will include a Stochastic oscillator, which gives the relationship between the asset's closing price and the price range over the previous period.
+
+```{r}
+# numerator <- (close - low)
+# denominator <- (high - low)
+# stochastic <- 100 * (numerator / denominator)
+```
 
 Finally, we must look into the future to score the Outlook for each observation as bullish, bearish, or neutral.
+
+```{r}
+# period <- 7
+# future actual outlook
+# difference7 <- data$Close[today] - data$close[today+7]
+# outlook <- ifelse(difference7 > 0, "bullish", "bearish")
+```
 
 ### The Model
 
