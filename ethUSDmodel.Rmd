@@ -17,6 +17,15 @@ Our data is a bit rough, with only daily readings of Open, High, Low, Close, Vol
 
 Instead of predicting an exact exchange rate, we will simply try to determine if the following week from any data point is bullish (significantly increasing), bearish (significantly decreasing) or neutral (transaction costs would prohibit profit from buying or selling).
 
+```{r, message=FALSE}
+library(tidyverse)
+library(tidymodels)
+
+data <- "https://tinyurl.com/ber2wuxv" %>%
+  read.csv(header = TRUE) %>%
+  tibble()
+```
+
 ### Feature engineering
 
 We will be using volume to establish a feature called Momentum, which is the rate of change of the volume of trades.  This will tell us if there is significant investor emotion regarding this asset.
@@ -31,9 +40,41 @@ Finally, we must look into the future to score the Outlook for each observation 
 
 We will split the data at 2/3 and train a model (probably random forest) with independent variables Momentum, MACD, Stochastic, and dependent being the Outlook.
 
+```{r}
+split <- initial_split(data, strata = outlook, p = 0.67)
+trainer <- training(split)
+tester <- testing(split)
+
+ethRecipe <- recipe(outlook ~ momentum + macd + stochastic, data = trainer) %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors()) %>%
+  prep(training = trainer)
+
+ethTrain <- juice(ethRecipe)
+ethTest <- bake(ethRecipe, tester)
+
+ethModel <- rand_forest(mode = "classification") %>%
+  set_engine("ranger")
+
+ethFit <- ethModel %>%
+  fit(outlook ~ momentum + macd + stochastic, data = tester)
+```
+
 ### Scoring the Model
 
 Precision? Recall? F-measure?
+
+```{r}
+results <- ethTest %>%
+  select(outlook) %>%
+  mutate(predicted = prediction)
+
+precision(results, truth = outlook, estimate = predicted)
+
+recall(results, truth = outlook, estimate = predicted)
+
+f_meas(results, truth = outlook, estimate = predicted)
+```
 
 ### Visualizations
 
