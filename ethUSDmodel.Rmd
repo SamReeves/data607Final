@@ -19,6 +19,9 @@ Instead of predicting an exact exchange rate, we will simply try to determine if
 
 ```{r, message=FALSE}
 library(tidyverse)
+library(zoo)
+library(smooth)
+library(TTR)
 library(tidymodels)
 
 data <- "https://raw.githubusercontent.com/TheWerefriend/data607Final/main/ETH-USD.csv" %>%
@@ -31,7 +34,10 @@ data <- data[, -6] %>%
   mutate(High = as.numeric(as.character(High))) %>%
   mutate(Low = as.numeric(as.character(Low))) %>%
   mutate(Close = as.numeric(as.character(Close))) %>%
-  mutate(Volume = as.numeric(as.character(Volume)))
+  mutate(Volume = as.numeric(as.character(Volume))) %>%
+  na.locf()
+
+# na.locf() from zoo replaces NA with previous non-NA value
 ```
 
 ### Feature engineering
@@ -43,14 +49,23 @@ period <- 9
 
 data <- data %>%
   arrange(Date) %>%
-  mutate(Momentum = 100 * (Volume - lag(Volume, 
-                                        n = period,
-                                        order_by = Date)))
+  mutate(Momentum = Volume - lag(Volume,
+                                 n = period,
+                                 order_by = Date))
 ```
 
 The next feature will be MACD (Moving Average Convergence/Divergence), which shows differences between exponential moving averages of two different periods.  If momentum is significant, this feature will tell us what direction the price is moving.
 
 ```{r}
+fast <- 12
+slow <- 26
+
+data <- data %>%
+  arrange(Date) %>%
+  mutate(SMA12 = sma(Close, h = fast)$fitted[,1]) %>%
+  mutate(SMA26 = sma(Close, h = slow)$fitted[,1]) %>%
+  mutate(MACD = MACD(Close, nFast = fast, nSlow = slow))
+  
 # simple moving average
 # sma12 <- mean(data$Close[today-12:today])
 # sma26 <- mean(data$Close[today-26:today])
