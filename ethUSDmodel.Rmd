@@ -39,9 +39,13 @@ data <- data[, -6] %>%
 We will be using volume to establish a feature called Momentum, which is the rate of change of the volume of trades.  This will tell us if there is significant investor emotion regarding this asset.
 
 ```{r}
-# period <- 9
-# momentum <- 100 * (data$Close[current] /
-#                    data$Close[current-period])
+period <- 9
+
+data <- data %>%
+  arrange(Date) %>%
+  mutate(Momentum = 100 * (Volume - lag(Volume, 
+                                        n = period,
+                                        order_by = Date)))
 ```
 
 The next feature will be MACD (Moving Average Convergence/Divergence), which shows differences between exponential moving averages of two different periods.  If momentum is significant, this feature will tell us what direction the price is moving.
