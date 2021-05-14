@@ -21,9 +21,17 @@ Instead of predicting an exact exchange rate, we will simply try to determine if
 library(tidyverse)
 library(tidymodels)
 
-data <- "https://tinyurl.com/ber2wuxv" %>%
+data <- "https://raw.githubusercontent.com/TheWerefriend/data607Final/main/ETH-USD.csv?token=ABHMHAW73NPSXIQ5M2ALXR3AU6LYE" %>%
   read.csv(header = TRUE) %>%
-  tibble()
+  tibble() %>%
+  mutate(Date = as.Date(Date, format = "%Y-%m-%d"))
+
+data <- data[, -6] %>%
+  mutate(Open = as.numeric(as.character(Open))) %>%
+  mutate(High = as.numeric(as.character(High))) %>%
+  mutate(Low = as.numeric(as.character(Low))) %>%
+  mutate(Close = as.numeric(as.character(Close))) %>%
+  mutate(Volume = as.numeric(as.character(Volume)))
 ```
 
 ### Feature engineering
