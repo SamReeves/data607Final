@@ -17,7 +17,7 @@ Our data is a bit rough, with only daily readings of Open, High, Low, Close, Vol
 
 Instead of predicting an exact exchange rate, we will simply try to determine if the following week from any data point is bullish (significantly increasing) or bearish (significantly decreasing).
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(zoo)
 library(smooth)
@@ -62,38 +62,33 @@ slow <- 26
 
 data <- data %>%
   arrange(Date) %>%
-  mutate(SMA12 = sma(Close, h = fast)$fitted[,1]) %>%
-  mutate(SMA26 = sma(Close, h = slow)$fitted[,1]) %>%
-  mutate(MACD = MACD(Close, nFast = fast, nSlow = slow))
-  
-# simple moving average
-# sma12 <- mean(data$Close[today-12:today])
-# sma26 <- mean(data$Close[today-26:today])
+  mutate(SMA12 = sma(Close, h = fast)$fitted[,1])
 
-# exponential moving average
-# ema12 <- (data$Close[today] - ema12[today-1]) *
-#          (2 / 13) + ema12[today-1]
-# ema26 <- (data$Close[today] - ema12[today-1]) *
-#          (2 / 27) + ema12[today-1]
+MACD <- MACD(data$Close, nFast = fast, nSlow = slow)
 
-# macd <- ema12 - ema26
+data <- cbind(data, MACD)
 ```
 
 Next, we will include a Stochastic oscillator, which gives the relationship between the asset's closing price and the price range over the previous period.
 
 ```{r}
-# numerator <- (close - low)
-# denominator <- (high - low)
-# stochastic <- 100 * (numerator / denominator)
+stochastic <- stoch(data$Close, nFastK = 14, nFastD = 3, nSlowD = 3)
+
+data <- cbind(data, stochastic)
 ```
 
-Finally, we must look into the future to score the Outlook for each observation as bullish, bearish, or neutral.
+Finally, we must look into the future to score the Outlook for each observation as bullish or not.
 
 ```{r}
-# period <- 7
-# future actual outlook
-# difference7 <- data$Close[today] - data$close[today+7]
-# outlook <- ifelse(difference7 > 0, "bullish", "bearish")
+data <- data %>%
+  arrange(Date) %>%
+  mutate(Future = as.factor(ifelse(lead(Close, n = 7) - Close > 0, TRUE, FALSE)))
+```
+
+We now must remove the trailing NAs we introduced with out lagged/leading indicators.
+
+```{r}
+data <- na.omit(data)
 ```
 
 ### The Model
@@ -101,11 +96,14 @@ Finally, we must look into the future to score the Outlook for each observation 
 We will split the data at 2/3 and train a model (probably random forest) with independent variables Momentum, MACD, Stochastic, and dependent being the Outlook.
 
 ```{r}
-split <- initial_split(data, strata = outlook, p = 0.67)
+split <- initial_split(data, strata = Future, p = 0.67)
 trainer <- training(split)
 tester <- testing(split)
 
-ethRecipe <- recipe(outlook ~ momentum + macd + stochastic, data = trainer) %>%
+ethRecipe <- recipe(Future ~ Open + High + Low + Close +
+                      Volume + Momentum + SMA12 + macd +
+                      signal + fastK + fastD + slowD,
+                    data = trainer) %>%
   step_center(all_predictors()) %>%
   step_scale(all_predictors()) %>%
   prep(training = trainer)
@@ -117,7 +115,9 @@ ethModel <- rand_forest(mode = "classification") %>%
   set_engine("ranger")
 
 ethFit <- ethModel %>%
-  fit(outlook ~ momentum + macd + stochastic, data = tester)
+  fit(Future ~ Open + High + Low + Close + Volume + 
+        Momentum + SMA12 + macd + signal + fastK + 
+        fastD + slowD, data = tester)
 ```
 
 ### Scoring the Model
@@ -126,14 +126,14 @@ Precision? Recall? F-measure?
 
 ```{r}
 results <- ethTest %>%
-  select(outlook) %>%
-  mutate(predicted = prediction)
+  select(Future) %>%
+  mutate(predicted = factor(ifelse(ethFit$fit$predictions[,1] > 0.5, TRUE, FALSE)))
 
-precision(results, truth = outlook, estimate = predicted)
+precision(results, truth = Future, estimate = predicted)
 
-recall(results, truth = outlook, estimate = predicted)
+recall(results, truth = Future, estimate = predicted)
 
-f_meas(results, truth = outlook, estimate = predicted)
+f_meas(results, truth = Future, estimate = predicted)
 ```
 
 ### Visualizations
@@ -142,4 +142,4 @@ Confusion matrix? Line plots? Box plots?
 
 ### Conclusions
 
-This either worked or it didn't.
+This model is absolute crap.
