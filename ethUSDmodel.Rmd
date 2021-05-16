@@ -194,7 +194,7 @@ eth_results_tester %>%
   autoplot()
 ```
 
-We can summarize the ROC curve by calculating the area under the curve (AUC).  In this case, the ROC AUC is 0.55 which translates to an A in the letter grade scale below.
+We can summarize the ROC curve by calculating the area under the curve (AUC).  In this case, the ROC AUC is 0.999 which translates to an A in the letter grade scale below.
 
 * A - [0.9, 1]
 * B - [0.8, 0.9)

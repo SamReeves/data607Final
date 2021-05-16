@@ -1,0 +1,11 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/770440/6496e3ebf7934466bc39538f3ae8a850
+bundleId: https://api.rpubs.com/api/v1/document/770440/6496e3ebf7934466bc39538f3ae8a850
+url: http://rpubs.com/TheWerefriend/770440
+when: 1621198126.84188
+lastSyncTime: 1621198126.8419
