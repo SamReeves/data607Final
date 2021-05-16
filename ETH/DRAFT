@@ -20,6 +20,7 @@ library(smooth)
 library(TTR)
 library(tidymodels)
 library(plotly)
+library(reactable)
 data <- "https://raw.githubusercontent.com/TheWerefriend/data607Final/main/ETH-USD.csv" %>%
   read.csv(header = TRUE) %>%
   tibble() %>%
@@ -114,7 +115,26 @@ f_meas(results, truth = Future, estimate = predicted)
 
 This model is absolute crap.
 
-## Library Approach for MACD
+## Bullish or Bearish Data
+
+Via the reactable function, our dataset becomes searchable with indications of bearish or bullish movement. 
+https://www.investopedia.com/articles/trading/08/macd-stochastic-double-cross.asp
+
+Creating searchable dataset with non-zero values
+```{r}
+macd_non_zero <- macd_non_zero %>% mutate(Bull_Bear = 
+                           case_when(Stochastic_Indicators + Moving_Average < 0 ~ "Bearish",
+                                     Stochastic_Indicators + Moving_Average > 0 ~ "Bullish"))
+
+```
+
+
+Bull/Bear market by date (market is constantly ongoing)
+```{r}
+reactable(macd_non_zero, searchable = TRUE, minRows = 1, bordered = TRUE, striped = TRUE,
+            highlight = TRUE, filterable = TRUE, showPageSizeOptions = TRUE,
+            showPagination = TRUE, pageSizeOptions = c(10,10,10), defaultPageSize = 5)
+```
 
 ## Candlestick 
 
