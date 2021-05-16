@@ -96,3 +96,17 @@ head(August_17, 200)
 head(June_18, 200)
 head(July_19, 200)
 ```
+
+## Candlestick Chart
+By using plotly, an interactice plotting library, it's possible to chart financial data such as ours. 
+
+Source: https://plotly.com/r/candlestick-charts/
+```{r}
+data_cs <- as.data.frame(data)
+
+cs <- data_cs %>% plot_ly(x = ~Date, type = "candlestick",
+                          open = ~Open, close = ~Close,
+                          high = ~High, low = ~Low)
+cs <- cs %>% layout(title = "Near all-time $Eth Candlestick Chart")
+cs
+```
